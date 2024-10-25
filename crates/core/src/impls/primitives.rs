@@ -12,6 +12,13 @@ impl<T: ToXml + ?Sized> ToXml for &T {
     }
 }
 
+// TODO: document element should be autoclosed
+impl ToXml for () {
+    fn serialize(&self, _: &mut Serializer<impl std::io::Write>) -> Result<(), SerError> {
+        Ok(())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -9,10 +9,10 @@ pub struct Serializer<W> {
 impl<W: Write> Serializer<W> {
     pub(crate) fn new(pretty: bool, writer: W) -> Self {
         let event_writer = ::xml::EmitterConfig::new()
+            .write_document_declaration(false)
             .perform_indent(pretty)
             .autopad_comments(pretty)
             .pad_self_closing(pretty)
-            .write_document_declaration(false)
             .create_writer(writer);
 
         Self { event_writer }
@@ -33,5 +33,39 @@ impl<W: Write> Serializer<W> {
         self.event_writer
             .write(::xml::writer::XmlEvent::characters(str))
             .map_err(Into::into)
+    }
+
+    // TODO: document;
+    // how prefixes and namespaces are handled
+    // wraps value in a name (give example)
+    // "empty" values are autoclosed
+    pub fn write_element<T: ToXml>(&mut self, name: &str, value: &T) -> Result<(), SerError> {
+        self.event_writer.write(::xml::writer::XmlEvent::start_element(name))?;
+        value.serialize(self)?;
+        self.event_writer.write(::xml::writer::XmlEvent::end_element())?;
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    struct Container<T>(T);
+
+    impl<T: ToXml> ToXml for Container<T> {
+        fn serialize(&self, serializer: &mut Serializer<impl Write>) -> Result<(), SerError> {
+            serializer.write_element("a", &self.0)
+        }
+    }
+
+    #[test]
+    fn write_element_value() {
+        assert_serialize_str("<a>test</a>", &Container("test"));
+    }
+
+    #[test]
+    fn write_self_closing_element() {
+        assert_serialize_str("<a/>", &Container(()));
     }
 }
