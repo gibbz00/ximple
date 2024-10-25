@@ -15,5 +15,9 @@ workspace = true
 [dependencies]
 ximple-macros.workspace = true
 
+xml.workspace = true
+
 [dev-dependencies]
+damock.workspace = true
+pretty_assertions.workspace = true
 trybuild = "1.0"

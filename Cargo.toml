@@ -14,8 +14,13 @@ version = "0.1.0"
 [workspace.dependencies]
 ximple-macros = { path = "crates/macros", version = "0" }
 
+damock = "0.1"
+pretty_assertions = "1"
+xml = "0.8"
+
 [workspace.lints.rust]
-missing_docs = "deny"
+# TEMP: until release
+# missing_docs = "warn"
 unused_must_use = "deny"
 
 [workspace.lints.clippy]
