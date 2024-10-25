@@ -1,4 +1,5 @@
-#[derive(Debug)]
+#[derive(Debug, thiserror::Error)]
 pub enum Error {
-    EventWriter(::xml::writer::Error),
+    #[error("XML writer error")]
+    EventWriter(#[from] ::xml::writer::Error),
 }

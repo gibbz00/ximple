@@ -21,7 +21,9 @@ pub use to_xml::ToXml;
 pub mod provided;
 pub(crate) use provided::*;
 
+mod impls;
+
 #[cfg(test)]
 pub(crate) mod test_utils;
 #[cfg(test)]
-pub(crate) use test_utils::MockXml;
+pub(crate) use test_utils::*;

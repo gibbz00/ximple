@@ -15,6 +15,7 @@ workspace = true
 [dependencies]
 ximple-macros.workspace = true
 
+thiserror.workspace = true
 xml.workspace = true
 
 [dev-dependencies]

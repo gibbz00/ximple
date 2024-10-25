@@ -28,7 +28,7 @@ mod document {
                     encoding: None,
                     standalone: self.standalone.then_some(true),
                 })
-                .map_err(SerError::EventWriter)
+                .map_err(Into::into)
         }
     }
 
@@ -55,7 +55,7 @@ mod document {
 
         #[test]
         fn serialization() {
-            test_utils::assert_serialization::<Document>();
+            assert_serialize_mock::<Document>();
         }
     }
 }
