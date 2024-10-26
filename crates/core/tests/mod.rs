@@ -15,18 +15,34 @@ mod test_utils {
 }
 
 mod structs {
-    use ximple::ToXml;
-
     mod unit {
-        use super::*;
-        use crate::assert_serialize_str;
+        use ximple::ToXml;
+
+        use crate::*;
 
         #[derive(ToXml)]
         struct UnitStruct;
 
         #[test]
-        fn unit_noop() {
+        fn noop() {
             assert_serialize_str("", &UnitStruct);
+        }
+    }
+
+    mod named {
+        use ximple::ToXml;
+
+        use crate::*;
+
+        #[derive(ToXml)]
+        struct NamedStruct {
+            foo: &'static str,
+            bar: (),
+        }
+
+        #[test]
+        fn fields_create_elements() {
+            assert_serialize_str("<foo>test</foo><bar/>", &NamedStruct { foo: "test", bar: () });
         }
     }
 }
