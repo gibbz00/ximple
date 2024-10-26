@@ -1,13 +1,15 @@
+use std::io::{Read, Write};
+
 use crate::*;
 
 impl ToXml for str {
-    fn serialize(&self, serializer: &mut Serializer<impl std::io::Write>) -> Result<(), SerError> {
+    fn serialize(&self, serializer: &mut Serializer<impl Write>) -> Result<(), SerError> {
         serializer.write_str(self)
     }
 }
 
 impl ToXml for bool {
-    fn serialize(&self, serializer: &mut Serializer<impl std::io::Write>) -> Result<(), SerError> {
+    fn serialize(&self, serializer: &mut Serializer<impl Write>) -> Result<(), SerError> {
         match self {
             true => serializer.write_str("true"),
             false => serializer.write_str("false"),
@@ -16,7 +18,7 @@ impl ToXml for bool {
 }
 
 impl FromXml for bool {
-    fn deserialize(deserializer: &mut Deserializer<impl std::io::Read>) -> Result<Self, DeError> {
+    fn deserialize(deserializer: &mut Deserializer<impl Read>) -> Result<Self, DeError> {
         let string = deserializer.read_string()?;
 
         match string.as_str() {
@@ -28,14 +30,20 @@ impl FromXml for bool {
 }
 
 impl<T: ToXml + ?Sized> ToXml for &T {
-    fn serialize(&self, serializer: &mut Serializer<impl std::io::Write>) -> Result<(), SerError> {
+    fn serialize(&self, serializer: &mut Serializer<impl Write>) -> Result<(), SerError> {
         (*self).serialize(serializer)
     }
 }
 
-// TODO: document element should be autoclosed
+// TODO: enclosing document element should be autoclosed
 impl ToXml for () {
-    fn serialize(&self, _: &mut Serializer<impl std::io::Write>) -> Result<(), SerError> {
+    fn serialize(&self, _: &mut Serializer<impl Write>) -> Result<(), SerError> {
+        Ok(())
+    }
+}
+
+impl FromXml for () {
+    fn deserialize(_: &mut Deserializer<impl Read>) -> Result<Self, DeError> {
         Ok(())
     }
 }
