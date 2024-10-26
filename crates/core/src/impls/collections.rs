@@ -6,6 +6,12 @@ impl ToXml for String {
     }
 }
 
+impl FromXml for String {
+    fn deserialize(deserializer: &mut Deserializer<impl std::io::Read>) -> Result<Self, DeError> {
+        deserializer.read_string()
+    }
+}
+
 impl<T: ToXml> ToXml for Vec<T> {
     fn serialize(&self, serializer: &mut Serializer<impl std::io::Write>) -> Result<(), SerError> {
         self.iter().try_for_each(|element| element.serialize(serializer))
@@ -22,10 +28,7 @@ impl<T: ToXml> ToXml for [T] {
 mod tests {
     use super::*;
 
-    #[test]
-    fn string_serialization() {
-        assert_serialize_str("test", &"test".to_string());
-    }
+    assert_bijective_xml!(string, "test", "test".to_string());
 
     #[test]
     fn vec_serialization() {

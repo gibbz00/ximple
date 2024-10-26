@@ -60,21 +60,16 @@ impl<W: Write> Serializer<W> {
 mod tests {
     use super::*;
 
-    struct Container<T>(T);
-
-    impl<T: ToXml> ToXml for Container<T> {
-        fn serialize(&self, serializer: &mut Serializer<impl Write>) -> Result<(), SerError> {
-            serializer.write_element("a", &self.0)
-        }
-    }
-
     #[test]
     fn write_element() {
-        assert_serialize_str("<a>test</a>", &Container("test"));
+        let str = "test";
+        let xml = crate::test_utils::container::contained_xml("test");
+        assert_serialize_str(&xml, &Container(str));
     }
 
     #[test]
     fn write_self_closing_element() {
-        assert_serialize_str("<a/>", &Container(()));
+        let xml = format!("<{}/>", crate::test_utils::container::ELEMENT_NAME);
+        assert_serialize_str(&xml, &Container(()));
     }
 }

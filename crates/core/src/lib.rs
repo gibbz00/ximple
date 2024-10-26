@@ -24,11 +24,14 @@ pub use to_xml::ToXml;
 mod from_xml;
 pub use from_xml::FromXml;
 
+mod impls;
+
 pub mod provided;
 
-mod impls;
+pub mod types;
+pub(crate) use types::*;
 
 #[cfg(test)]
 pub(crate) mod test_utils;
 #[cfg(test)]
-pub(crate) use test_utils::*;
+pub(crate) use test_utils::{assert_bijective_xml, assert_deserialize_str, assert_serialize_str, Container};

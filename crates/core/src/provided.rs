@@ -35,21 +35,20 @@ mod document {
 
     impl FromXml for Document {
         fn deserialize(deserializer: &mut Deserializer<impl std::io::Read>) -> Result<Self, DeError> {
-            match deserializer.event_reader().next()? {
+            let xml_event = deserializer
+                .event_iter()
+                .next()
+                .transpose()
+                .map_err(DeError::from_reader)?
+                .ok_or(DeError::end())?;
+
+            match xml_event {
                 ::xml::reader::XmlEvent::StartDocument { version, standalone, .. } => {
                     Ok(Self { standalone: standalone.unwrap_or_default(), version })
                 }
-                xml_event => Err(match Event::from_xml_event(xml_event)? {
-                    Some(event) => DeError::UnexpectedEvent {
-                        // HACK: don't want to expose `StartDocument` in `Event` as it is provided by crate
-                        expected: Event::StartElement(StartElement {
-                            name: OwnedName { local_name: "xml".to_string(), namespace: None, prefix: None },
-                            attributes: vec![],
-                            namespace: Namespace::empty(),
-                        }),
-                        found: event,
-                    },
-                    None => DeError::End,
+                xml_event => Err(match Event::from_xml_event(xml_event) {
+                    Some(event) => DeError::from_inner(InnerError::InvalidEvent(PrivateEventType::StartDocument, event)),
+                    None => DeError::end(),
                 }),
             }
         }
