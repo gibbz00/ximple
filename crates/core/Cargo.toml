@@ -20,5 +20,6 @@ xml.workspace = true
 
 [dev-dependencies]
 damock.workspace = true
+indoc.workspace = true
 pretty_assertions.workspace = true
-trybuild = "1.0"
+trybuild.workspace = true

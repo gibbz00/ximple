@@ -15,8 +15,10 @@ version = "0.1.0"
 ximple-macros = { path = "crates/macros", version = "0" }
 
 damock = "0.1"
+indoc = "2"
 pretty_assertions = "1"
 thiserror = "1"
+trybuild = "1"
 xml = "0.8"
 
 [workspace.lints.rust]

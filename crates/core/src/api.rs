@@ -19,11 +19,7 @@ mod write {
 
     fn to_string_impl<T: ToXml>(pretty: bool, value: &T) -> Result<String, SerError> {
         let mut buffer = Vec::new();
-
-        match pretty {
-            true => to_writer_pretty(&mut buffer, value)?,
-            false => to_writer(&mut buffer, value)?,
-        }
+        to_writer_impl(pretty, &mut buffer, value)?;
 
         let string = String::from_utf8(buffer).expect("invalid UTF-8 received from XML writer");
         Ok(string)
