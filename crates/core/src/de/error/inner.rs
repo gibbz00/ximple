@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use crate::*;
 
 #[derive(Debug, thiserror::Error)]
@@ -10,6 +12,8 @@ pub enum InnerError {
     End,
     #[error("unable to read {} tag, invalid name", .0)]
     InvalidName(Tag, #[source] InvalidNameError),
+    #[error("invalid value, expected '{}', found: '{}'", .0, .1)]
+    InvalidValue(Cow<'static, str>, String),
 }
 
 impl InnerError {

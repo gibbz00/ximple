@@ -15,6 +15,18 @@ impl ToXml for bool {
     }
 }
 
+impl FromXml for bool {
+    fn deserialize(deserializer: &mut Deserializer<impl std::io::Read>) -> Result<Self, DeError> {
+        let string = deserializer.read_string()?;
+
+        match string.as_str() {
+            "true" => Ok(true),
+            "false" => Ok(false),
+            _ => Err(DeError::invalid_value("true or false", string)),
+        }
+    }
+}
+
 impl<T: ToXml + ?Sized> ToXml for &T {
     fn serialize(&self, serializer: &mut Serializer<impl std::io::Write>) -> Result<(), SerError> {
         (*self).serialize(serializer)
@@ -37,9 +49,6 @@ mod tests {
         assert_serialize_str("test", &"test");
     }
 
-    #[test]
-    fn bool_serialization() {
-        assert_serialize_str("true", &true);
-        assert_serialize_str("false", &false);
-    }
+    assert_bijective_xml!(bool_true, "true", true);
+    assert_bijective_xml!(bool_false, "false", false);
 }

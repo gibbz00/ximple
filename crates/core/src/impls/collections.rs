@@ -54,24 +54,26 @@ mod tests {
 
     assert_bijective_xml!(string, "test", "test".to_string());
 
-    #[test]
-    fn vec_serialization() {
-        assert_serialize_str("test", &vec!["t", "e", "s", "t"]);
-    }
+    mod vec {
+        use super::*;
 
-    #[test]
-    fn vec_deserialization() {
-        let slice = ["t", "e", "s", "t"];
-        let vec = slice.iter().map(|value| Container(value.to_string())).collect::<Vec<_>>();
-        let xml = slice
-            .iter()
-            .map(|value| crate::test_utils::container::contained_xml(value))
-            .fold(String::new(), |mut acc, xml_piece| {
-                acc.push_str(&xml_piece);
-                acc
-            });
+        const VEC_ELEMENTS: [&str; 4] = ["t", "e", "s", "t"];
 
-        assert_deserialize_str(&vec, &xml);
+        fn mock_vec() -> Vec<Container<String>> {
+            VEC_ELEMENTS.iter().map(|value| Container(value.to_string())).collect()
+        }
+
+        fn mock_vec_xml() -> String {
+            VEC_ELEMENTS
+                .iter()
+                .map(|value| crate::test_utils::container::contained_xml(value))
+                .fold(String::new(), |mut acc, xml_piece| {
+                    acc.push_str(&xml_piece);
+                    acc
+                })
+        }
+
+        assert_bijective_xml!(&mock_vec_xml(), mock_vec());
     }
 
     #[test]

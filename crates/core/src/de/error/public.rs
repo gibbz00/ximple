@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use crate::*;
 
 pub struct Error {
@@ -7,6 +9,10 @@ pub struct Error {
 impl Error {
     pub fn invalid_event(expected: EventType, found: Event) -> Self {
         Self { inner: InnerError::InvalidEvent(expected.as_private(), found) }
+    }
+
+    pub fn invalid_value(expected: impl Into<Cow<'static, str>>, found: impl Into<String>) -> Self {
+        Self { inner: InnerError::InvalidValue(expected.into(), found.into()) }
     }
 
     pub(crate) fn end() -> Self {
