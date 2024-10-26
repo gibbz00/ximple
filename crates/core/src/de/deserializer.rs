@@ -3,25 +3,24 @@ use std::io::Read;
 use crate::*;
 
 pub struct Deserializer<R: Read> {
-    event_iterator: ::xml::reader::Events<R>,
+    stream: EventStream<R>,
 }
 
 impl<R: Read> Deserializer<R> {
     pub(crate) fn new(reader: R) -> Self {
-        let event_iterator = ::xml::ParserConfig::new().trim_whitespace(true).create_reader(reader).into_iter();
-        Self { event_iterator }
+        Self { stream: EventStream::new(reader) }
     }
 
     /// Used to deserialize special elements provided by this crate.
     /// Ex. [`Document`](crate::provided::Document)
-    pub(crate) fn event_iter(&mut self) -> &mut ::xml::reader::Events<R> {
-        &mut self.event_iterator
+    pub(crate) fn event_stream(&mut self) -> &mut EventStream<R> {
+        &mut self.stream
     }
 }
 
 impl<R: Read> Deserializer<R> {
     pub fn read_event(&mut self) -> Result<Event, DeError> {
-        let event_reader = self.event_iter();
+        let event_reader = self.event_stream();
 
         while let Some(xml_event) = event_reader.next().transpose().map_err(DeError::from_reader)? {
             if let Some(event) = Event::from_xml_event(xml_event) {

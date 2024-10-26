@@ -7,3 +7,6 @@ pub(crate) use event::Event;
 
 mod deserializer;
 pub use deserializer::Deserializer;
+
+mod stream;
+pub(crate) use stream::EventStream;

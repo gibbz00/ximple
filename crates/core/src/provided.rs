@@ -36,7 +36,7 @@ mod document {
     impl FromXml for Document {
         fn deserialize(deserializer: &mut Deserializer<impl std::io::Read>) -> Result<Self, DeError> {
             let xml_event = deserializer
-                .event_iter()
+                .event_stream()
                 .next()
                 .transpose()
                 .map_err(DeError::from_reader)?
