@@ -19,7 +19,6 @@ mod to_xml;
 pub use to_xml::ToXml;
 
 pub mod provided;
-pub(crate) use provided::*;
 
 mod impls;
 

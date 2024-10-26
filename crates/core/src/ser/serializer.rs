@@ -40,8 +40,17 @@ impl<W: Write> Serializer<W> {
     // wraps value in a name (give example)
     // "empty" values are autoclosed
     pub fn write_element<T: ToXml>(&mut self, name: &str, value: &T) -> Result<(), SerError> {
-        self.event_writer.write(::xml::writer::XmlEvent::start_element(name))?;
+        self.write_start(name)?;
         value.serialize(self)?;
+        self.write_end()
+    }
+
+    pub fn write_start(&mut self, name: &str) -> Result<(), SerError> {
+        self.event_writer.write(::xml::writer::XmlEvent::start_element(name))?;
+        Ok(())
+    }
+
+    pub fn write_end(&mut self) -> Result<(), SerError> {
         self.event_writer.write(::xml::writer::XmlEvent::end_element())?;
         Ok(())
     }
@@ -60,7 +69,7 @@ mod tests {
     }
 
     #[test]
-    fn write_element_value() {
+    fn write_element() {
         assert_serialize_str("<a>test</a>", &Container("test"));
     }
 
