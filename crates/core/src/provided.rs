@@ -7,8 +7,9 @@ mod document {
     /// <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
     /// ```
     ///
-    /// Encoding hard-coded to "UTF-8" due to it being the only supported
-    /// encoding in the underlying writer.
+    /// Written encoding hard-coded to "UTF-8" due to it being the only
+    /// supported encoding in the underlying writer.
+    #[derive(Debug, Copy, Clone, PartialEq, Eq)]
     pub struct Document {
         /// standalone="yes/no" attribute
         ///
@@ -32,19 +33,24 @@ mod document {
         }
     }
 
-    #[cfg(test)]
-    mod mocks {
-        use super::*;
-
-        impl damock::Mock for Document {
-            fn mock() -> Self {
-                Self { standalone: true, version: XmlVersion::Version11 }
-            }
-        }
-
-        impl MockXml for Document {
-            fn mock_xml() -> String {
-                r#"<?xml version="1.1" encoding="UTF-8" standalone="yes"?>"#.to_string()
+    impl FromXml for Document {
+        fn deserialize(deserializer: &mut Deserializer<impl std::io::Read>) -> Result<Self, DeError> {
+            match deserializer.event_reader().next()? {
+                ::xml::reader::XmlEvent::StartDocument { version, standalone, .. } => {
+                    Ok(Self { standalone: standalone.unwrap_or_default(), version })
+                }
+                xml_event => Err(match Event::from_xml_event(xml_event)? {
+                    Some(event) => DeError::UnexpectedEvent {
+                        // HACK: don't want to expose `StartDocument` in `Event` as it is provided by crate
+                        expected: Event::StartElement(StartElement {
+                            name: OwnedName { local_name: "xml".to_string(), namespace: None, prefix: None },
+                            attributes: vec![],
+                            namespace: Namespace::empty(),
+                        }),
+                        found: event,
+                    },
+                    None => DeError::End,
+                }),
             }
         }
     }
@@ -53,9 +59,22 @@ mod document {
     mod tests {
         use super::*;
 
+        fn mock_document() -> Document {
+            Document { standalone: true, version: XmlVersion::Version11 }
+        }
+
+        fn mock_document_xml() -> String {
+            r#"<?xml version="1.1" encoding="UTF-8" standalone="yes"?>"#.to_string()
+        }
+
         #[test]
         fn serialization() {
-            assert_serialize_mock::<Document>();
+            assert_serialize_str(&mock_document_xml(), &mock_document());
+        }
+
+        #[test]
+        fn deserialization() {
+            assert_deserialize_str(&mock_document(), &mock_document_xml());
         }
     }
 }

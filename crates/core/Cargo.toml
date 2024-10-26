@@ -19,7 +19,6 @@ thiserror.workspace = true
 xml.workspace = true
 
 [dev-dependencies]
-damock.workspace = true
 indoc.workspace = true
 pretty_assertions.workspace = true
 trybuild.workspace = true

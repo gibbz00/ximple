@@ -14,7 +14,6 @@ version = "0.1.0"
 [workspace.dependencies]
 ximple-macros = { path = "crates/macros", version = "0" }
 
-damock = "0.1"
 indoc = "2"
 pretty_assertions = "1"
 thiserror = "1"

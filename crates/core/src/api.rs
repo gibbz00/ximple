@@ -1,13 +1,25 @@
-// TODO:
-// from_str
-// from_reader
+// TODO: document with examples
+
+mod read {
+    use std::io::Read;
+
+    use crate::*;
+
+    pub fn from_str<T: FromXml>(str: &str) -> Result<T, DeError> {
+        from_reader(str.as_bytes())
+    }
+
+    pub fn from_reader<T: FromXml>(reader: impl Read) -> Result<T, DeError> {
+        let mut deserializer = Deserializer::new(reader);
+        T::deserialize(&mut deserializer)
+    }
+}
+pub use read::{from_reader, from_str};
 
 mod write {
     use std::io::Write;
 
     use crate::*;
-
-    // TODO: document with examples
 
     pub fn to_string<T: ToXml>(value: &T) -> Result<String, SerError> {
         to_string_impl(false, value)
@@ -26,18 +38,18 @@ mod write {
     }
 
     /// Simple writer optimized for compact XML output
-    pub fn to_writer<T: ToXml, W: Write>(writer: W, value: &T) -> Result<(), SerError> {
+    pub fn to_writer<T: ToXml>(writer: impl Write, value: &T) -> Result<(), SerError> {
         to_writer_impl(false, writer, value)
     }
 
     /// Pretty writer optimized for human readable XML output
     ///
     /// Adds indentation together with comment and self-closing tag padding.
-    pub fn to_writer_pretty<T: ToXml, W: Write>(writer: W, value: &T) -> Result<(), SerError> {
+    pub fn to_writer_pretty<T: ToXml>(writer: impl Write, value: &T) -> Result<(), SerError> {
         to_writer_impl(true, writer, value)
     }
 
-    fn to_writer_impl<T: ToXml, W: Write>(pretty: bool, writer: W, value: &T) -> Result<(), SerError> {
+    fn to_writer_impl<T: ToXml>(pretty: bool, writer: impl Write, value: &T) -> Result<(), SerError> {
         let mut serializer = Serializer::new(pretty, writer);
         value.serialize(&mut serializer)?;
 
