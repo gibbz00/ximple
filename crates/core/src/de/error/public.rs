@@ -15,6 +15,10 @@ impl Error {
         Self { inner: InnerError::InvalidValue(expected.into(), found.into()) }
     }
 
+    pub fn element_not_found(expected: impl Into<Vec<String>>) -> Self {
+        Self { inner: InnerError::ElementNotFound(expected.into()) }
+    }
+
     pub(crate) fn end() -> Self {
         Self { inner: InnerError::End }
     }
@@ -40,4 +44,8 @@ impl std::fmt::Display for Error {
     }
 }
 
-impl std::error::Error for Error {}
+impl std::error::Error for Error {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        Some(&self.inner)
+    }
+}

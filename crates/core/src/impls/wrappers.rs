@@ -13,21 +13,21 @@ impl<T: ToXml> ToXml for Option<T> {
 
         Ok(())
     }
+
+    fn should_skip(&self) -> bool {
+        self.is_none()
+    }
 }
 
 impl<T: FromXml> FromXml for Option<T> {
     fn deserialize(deserializer: &mut Deserializer<impl Read>) -> Result<Self, DeError> {
-        if deserializer.event_stream().peek_depth() < deserializer.event_stream().depth() {
-            return Ok(None);
-        }
-
-        if let Some(Ok(peeked_event)) = deserializer.event_stream().peek() {
-            if peeked_event == &::xml::reader::XmlEvent::EndDocument {
-                return Ok(None);
-            }
-        }
-
+        // Deserializer::read_start_element determines if the enclosing tags for
+        // this value should be deserialized, before this method is called
         T::deserialize(deserializer).map(Some)
+    }
+
+    fn fallback() -> Option<Self> {
+        Some(None)
     }
 }
 
@@ -62,10 +62,30 @@ where
 mod tests {
     use super::*;
 
-    assert_bijective_xml!(option_none, "", Option::<bool>::None);
-    assert_bijective_xml!(option_some, "test", Some("test".to_string()));
     assert_bijective_xml!(boxed, "test", Box::new("test".to_string()));
     assert_bijective_xml!(cow_owned, "test", Cow::<'_, str>::Owned("test".to_string()));
+
+    #[test]
+    fn option_some_serialization() {
+        let xml = format!("<{}/>", crate::test_utils::container::ELEMENT_NAME);
+        assert_serialize_str(&xml, &Some(Container(())));
+    }
+
+    #[test]
+    fn option_some_deserialization() {
+        let xml = crate::test_utils::container::contained_xml("");
+        assert_deserialize_str(&Some(Container(())), &xml);
+    }
+
+    #[test]
+    fn option_none_serialization() {
+        assert_serialize_str("", &Option::<Container<()>>::None);
+    }
+
+    #[test]
+    fn option_none_deserialization() {
+        assert_deserialize_str(&Container(Option::<Container<()>>::None), "<container></container>");
+    }
 
     #[test]
     fn cow_serialization() {

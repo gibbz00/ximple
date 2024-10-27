@@ -43,10 +43,9 @@ fn named(ident: Ident, fields: FieldsNamed) -> TokenStream2 {
 }
 
 fn unnamed(ident: Ident, fields: FieldsUnnamed) -> TokenStream2 {
-    let tuple_fields = fields.unnamed.into_iter().map(|field| {
-        let ty = field.ty;
+    let tuple_fields = fields.unnamed.into_iter().map(|_| {
         quote! {
-            #ty::deserialize(deserializer)?
+            ::ximple::FromXml::deserialize(deserializer)?
         }
     });
 

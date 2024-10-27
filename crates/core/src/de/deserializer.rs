@@ -45,33 +45,88 @@ impl<R: Read> Deserializer<R> {
     ///
     /// Enclosing tags must match the supplied name.
     pub fn read_element<T: FromXml>(&mut self, name: Name<'_>) -> Result<T, DeError> {
-        self.read_start_element(name)?;
+        if let Some(fallback) = self.read_start_element::<T>(name)? {
+            return Ok(fallback);
+        }
         let value = T::deserialize(self)?;
         self.read_end_element(name)?;
         Ok(value)
     }
 
     /// Read a start tag that must match the supplied name.
-    fn read_start_element(&mut self, name: Name<'_>) -> Result<(), DeError> {
+    ///
+    /// Advances the read cursor and is therefore not a idempotent operation,
+    /// unless the next element is not found and T has a fallback.
+    ///
+    /// Returns Some(fallback_value) if the element wasn't found, and where `T` is marked as
+    /// optoinal by [`FromXml::optional`]. Returns element not found error if
+    pub fn read_start_element<T: FromXml>(&mut self, name: Name<'_>) -> Result<Option<T>, DeError> {
+        if !self.peek_start_element_matches(name) {
+            if let Some(fallback) = T::fallback() {
+                return Ok(Some(fallback));
+            }
+        }
+
         match self.read_event()? {
             Event::StartElement(start_element) => {
                 name.matches(start_element.name.borrow())
                     .map_err(|err| DeError::from_inner(InnerError::InvalidName(Tag::Start, err)))?;
 
                 // TODO: place attributes in deserializer context
-                Ok(())
+                Ok(None)
             }
             other => Err(DeError::invalid_event(EventType::StartElement, other)),
         }
     }
 
     /// Read an end tag that must match the supplied name.
-    fn read_end_element(&mut self, name: Name<'_>) -> Result<(), DeError> {
+    ///
+    /// Advances the read cursor and is therefore not a idempotent operation.
+    pub fn read_end_element(&mut self, name: Name<'_>) -> Result<(), DeError> {
         match self.read_event()? {
             Event::EndElement(end_element) => name
                 .matches(end_element.borrow())
                 .map_err(|err| DeError::from_inner(InnerError::InvalidName(Tag::End, err))),
             other => Err(DeError::invalid_event(EventType::StartElement, other)),
+        }
+    }
+}
+
+impl<R: Read> Deserializer<R> {
+    /// Peek if the next XML token is a start element matching a supplied name
+    pub fn peek_start_element_matches(&mut self, name: Name<'_>) -> bool {
+        if let Ok(Some(BorrowedEvent::StartElement(start_element_name))) = self.peek_event() {
+            name.matches(start_element_name.name.borrow()).is_ok()
+        } else {
+            false
+        }
+    }
+
+    pub(crate) fn peek_event(&mut self) -> Result<Option<BorrowedEvent<'_>>, DeError> {
+        // BUG: ?
+        #[allow(unused_assignments)]
+        let mut found_event = false;
+
+        match self.event_stream().peek() {
+            Some(peeked_xml_event) => match peeked_xml_event {
+                Ok(xml_event) => found_event = BorrowedEvent::is_ximple_event(xml_event),
+                Err(err) => return Err(DeError::from_reader(err.clone())),
+            },
+            None => return Ok(None),
+        };
+
+        match found_event {
+            true => {
+                // WORKAROUND: trying to get around borrow checker returning
+                // directly in Ok(xml_event) match arm resulted in compiler
+                // errors.
+                let event = self.event_stream().peek().unwrap().as_ref().unwrap();
+                Ok(BorrowedEvent::from_xml_event(event))
+            }
+            false => {
+                self.event_stream().next();
+                self.peek_event()
+            }
         }
     }
 }

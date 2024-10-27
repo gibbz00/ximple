@@ -40,6 +40,10 @@ impl<W: Write> Serializer<W> {
     // wraps value in a name (give example)
     // "empty" values are autoclosed
     pub fn write_element<T: ToXml>(&mut self, name: &str, value: &T) -> Result<(), SerError> {
+        if value.should_skip() {
+            return Ok(());
+        }
+
         self.write_start(name)?;
         value.serialize(self)?;
         self.write_end()
