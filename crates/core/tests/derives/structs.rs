@@ -1,15 +1,10 @@
 mod unit {
-    use ximple::ToXml;
-
     use crate::*;
 
-    #[derive(ToXml)]
+    #[derive(Debug, PartialEq, ximple::ToXml, ximple::FromXml)]
     struct UnitStruct;
 
-    #[test]
-    fn noop() {
-        assert_serialize_str("", &UnitStruct);
-    }
+    assert_bijective_xml!(noop, "", UnitStruct);
 }
 
 mod named {

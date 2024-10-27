@@ -1,4 +1,5 @@
 use proc_macro2::TokenStream as TokenStream2;
+use quote::quote;
 use syn::{DataStruct, Fields, FieldsNamed, FieldsUnnamed, Ident};
 
 pub fn derive(ident: Ident, data_struct: DataStruct) -> TokenStream2 {
@@ -10,7 +11,13 @@ pub fn derive(ident: Ident, data_struct: DataStruct) -> TokenStream2 {
 }
 
 fn unit(ident: Ident) -> TokenStream2 {
-    todo!()
+    quote! {
+        impl ::ximple::FromXml for #ident {
+            fn deserialize(deserializer: &mut ::ximple::de::Deserializer<impl std::io::Read>) -> Result<Self, ::ximple::de::Error> {
+                Ok(#ident)
+            }
+        }
+    }
 }
 
 fn named(ident: Ident, fields: FieldsNamed) -> TokenStream2 {
