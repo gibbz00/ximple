@@ -1,5 +1,5 @@
 error: unions are not supported
- --> tests/ui/union_not_supported.rs:2:1
+ --> tests/ui/from_xml/union_not_supported.rs:2:1
   |
 2 | union Foo {
   | ^^^^^

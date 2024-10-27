@@ -2,6 +2,7 @@
 
 use proc_macro::TokenStream;
 
+mod derive_from_xml;
 mod derive_to_xml;
 
 /// Derives `ToXml`
@@ -12,8 +13,8 @@ pub fn derive_to_xml(token_stream: TokenStream) -> TokenStream {
 
 /// Derives `FromXml`
 #[proc_macro_derive(FromXml, attributes(ximple))]
-pub fn derive_from_xml(_token_stream: TokenStream) -> TokenStream {
-    todo!()
+pub fn derive_from_xml(token_stream: TokenStream) -> TokenStream {
+    derive_from_xml::derive_from_xml_impl(token_stream)
 }
 
 /// Derives `ToXmlAttr`
