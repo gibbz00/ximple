@@ -59,7 +59,7 @@ impl<R: Read> Deserializer<R> {
     /// unless the next element is not found and T has a fallback.
     ///
     /// Returns Some(fallback_value) if the element wasn't found, and where `T` is marked as
-    /// optoinal by [`FromXml::fallback`]. Returns element not found error if
+    /// optional by [`FromXml::fallback`]. Returns element not found error if
     pub fn read_start_element<T: FromXml>(&mut self, name: Name<'_>) -> Result<Option<T>, DeError> {
         if !self.peek_start_element_matches(name) {
             if let Some(fallback) = T::fallback() {
