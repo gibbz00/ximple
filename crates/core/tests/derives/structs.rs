@@ -8,38 +8,31 @@ mod unit {
 }
 
 mod named {
-    use ximple::ToXml;
-
     use crate::*;
 
-    #[derive(ToXml)]
+    #[derive(Debug, PartialEq, ximple::ToXml, ximple::FromXml)]
     struct NamedStruct {
-        foo: &'static str,
+        foo: bool,
         bar: (),
     }
 
-    #[test]
-    fn fields_create_elements() {
-        assert_serialize_str("<foo>test</foo><bar/>", &NamedStruct { foo: "test", bar: () });
-    }
+    assert_bijective_xml!(fields_create_elements, "<foo>true</foo><bar/>", NamedStruct { foo: true, bar: () });
 }
 
 mod unnamed {
-    use ximple::ToXml;
-
     use crate::*;
 
-    #[derive(ToXml)]
+    #[derive(Debug, PartialEq, ximple::ToXml, ximple::FromXml)]
     struct Container {
-        a: &'static str,
+        a: bool,
     }
 
-    #[derive(ToXml)]
+    #[derive(Debug, PartialEq, ximple::ToXml, ximple::FromXml)]
     struct UnnamedStruct(Container, Container);
 
-    #[test]
-    fn fields_create_elements() {
-        let unnamed_struct = UnnamedStruct(Container { a: "foo" }, Container { a: "bar" });
-        assert_serialize_str("<a>foo</a><a>bar</a>", &unnamed_struct);
-    }
+    assert_bijective_xml!(
+        fields_create_elements,
+        "<a>true</a><a>false</a>",
+        UnnamedStruct(Container { a: true }, Container { a: false })
+    );
 }

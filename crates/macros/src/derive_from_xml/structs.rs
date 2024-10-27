@@ -21,9 +21,40 @@ fn unit(ident: Ident) -> TokenStream2 {
 }
 
 fn named(ident: Ident, fields: FieldsNamed) -> TokenStream2 {
-    todo!()
+    let named_fields = fields.named.into_iter().map(|field| {
+        let field_ident = field.ident.expect("encountered named field without an identifier");
+        let element_ident = field_ident.to_string();
+        let element_name = quote! { ::ximple::types::Name::new(#element_ident) };
+
+        quote! {
+            #field_ident: deserializer.read_element(#element_name)?
+        }
+    });
+
+    quote! {
+        impl ::ximple::FromXml for #ident {
+            fn deserialize(deserializer: &mut ::ximple::de::Deserializer<impl std::io::Read>) -> Result<Self, ::ximple::de::Error> {
+                Ok(#ident{
+                    #(#named_fields),*
+                })
+            }
+        }
+    }
 }
 
 fn unnamed(ident: Ident, fields: FieldsUnnamed) -> TokenStream2 {
-    todo!()
+    let tuple_fields = fields.unnamed.into_iter().map(|field| {
+        let ty = field.ty;
+        quote! {
+            #ty::deserialize(deserializer)?
+        }
+    });
+
+    quote! {
+        impl ::ximple::FromXml for #ident {
+            fn deserialize(deserializer: &mut ::ximple::de::Deserializer<impl std::io::Read>) -> Result<Self, ::ximple::de::Error> {
+                Ok(#ident(#(#tuple_fields),*))
+            }
+        }
+    }
 }
