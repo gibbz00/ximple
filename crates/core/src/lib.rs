@@ -18,11 +18,8 @@ pub(crate) use ser::{Error as SerError, *};
 pub mod de;
 pub(crate) use de::{Error as DeError, *};
 
-mod to_xml;
-pub use to_xml::ToXml;
-
-mod from_xml;
-pub use from_xml::FromXml;
+mod traits;
+pub use traits::{FromXml, ToXml};
 
 mod impls;
 
