@@ -2,7 +2,7 @@ use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
 use syn::{DataEnum, FieldsNamed, FieldsUnnamed, Ident};
 
-pub fn derive(enum_ident: Ident, data_enum: DataEnum) -> TokenStream2 {
+pub fn derive(data_enum: DataEnum) -> TokenStream2 {
     // TODO: note that this this must take future 'skip', 'rename' and 'flatten'
     // attributes into account too.
     let not_found_error = {
@@ -17,13 +17,8 @@ pub fn derive(enum_ident: Ident, data_enum: DataEnum) -> TokenStream2 {
     });
 
     quote! {
-        impl ::ximple::FromXml for #enum_ident {
-            fn deserialize(deserializer: &mut ::ximple::de::Deserializer<impl std::io::Read>) -> Result<Self, ::ximple::de::Error> {
-                #(#variant_deserializers)*
-
-                #not_found_error
-            }
-        }
+        #(#variant_deserializers)*
+        #not_found_error
     }
 }
 

@@ -2,20 +2,16 @@ use proc_macro2::{Span, TokenStream as TokenStream2};
 use quote::quote;
 use syn::{DataEnum, FieldsNamed, FieldsUnnamed, Ident};
 
-pub fn derive(enum_ident: Ident, data_enum: DataEnum) -> TokenStream2 {
+pub fn derive(enum_ident: &Ident, data_enum: DataEnum) -> TokenStream2 {
     let match_arms = data_enum.variants.into_iter().map(|variant| match variant.fields {
-        syn::Fields::Named(fields_named) => named(&enum_ident, &variant.ident, fields_named),
-        syn::Fields::Unnamed(fields_unnamed) => unnamed(&enum_ident, &variant.ident, fields_unnamed),
-        syn::Fields::Unit => unit(&enum_ident, &variant.ident),
+        syn::Fields::Named(fields_named) => named(enum_ident, &variant.ident, fields_named),
+        syn::Fields::Unnamed(fields_unnamed) => unnamed(enum_ident, &variant.ident, fields_unnamed),
+        syn::Fields::Unit => unit(enum_ident, &variant.ident),
     });
 
     quote! {
-        impl ::ximple::ToXml for #enum_ident {
-            fn serialize(&self, serializer: &mut ::ximple::ser::Serializer<impl std::io::Write>) -> Result<(), ::ximple::ser::Error> {
-                match self {
-                    #(#match_arms),*
-                }
-            }
+        match self {
+            #(#match_arms),*
         }
     }
 }

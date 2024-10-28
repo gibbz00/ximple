@@ -35,6 +35,13 @@ mod named {
         "<second>true</second>",
         FirstOptionStruct { first: None, second: true }
     );
+
+    #[derive(Debug, PartialEq, ximple::ToXml, ximple::FromXml)]
+    struct GenericNamedStruct<T> {
+        foo: T,
+    }
+
+    assert_bijective_xml!(generic, "<foo>true</foo>", GenericNamedStruct { foo: true });
 }
 
 mod unnamed {
@@ -53,4 +60,14 @@ mod unnamed {
         "<a>true</a><a>false</a>",
         UnnamedStruct(Container { a: true }, Container { a: false })
     );
+
+    #[derive(Debug, PartialEq, ximple::ToXml, ximple::FromXml)]
+    struct GenericContainer<T> {
+        a: T,
+    }
+
+    #[derive(Debug, PartialEq, ximple::ToXml, ximple::FromXml)]
+    struct GenericUnnamedStruct<T>(GenericContainer<T>);
+
+    assert_bijective_xml!(generic, "<a>true</a>", GenericUnnamedStruct(GenericContainer { a: true }));
 }
