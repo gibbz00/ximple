@@ -39,18 +39,34 @@ impl<W: Write> Serializer<W> {
     // how prefixes and namespaces are handled
     // wraps value in a name (give example)
     // "empty" values are autoclosed
+    // shorthand for write_element_with_attributes(name, &Attributes::new, value);
     pub fn write_element<T: ToXml>(&mut self, name: &str, value: &T) -> Result<(), SerError> {
+        self.write_element_with_attributes(name, &Default::default(), value)
+    }
+
+    pub fn write_element_with_attributes<T: ToXml>(&mut self, name: &str, attributes: &Attributes, value: &T) -> Result<(), SerError> {
         if value.should_skip() {
             return Ok(());
         }
 
-        self.write_start(name)?;
+        self.write_start_with_attributes(name, attributes)?;
         value.serialize(self)?;
         self.write_end()
     }
 
+    // TODO: document
+    // same as write_start_with_attributes(name, &Attributes::new, value);
     pub fn write_start(&mut self, name: &str) -> Result<(), SerError> {
-        self.event_writer.write(::xml::writer::XmlEvent::start_element(name))?;
+        self.write_start_with_attributes(name, &Default::default())
+    }
+
+    pub fn write_start_with_attributes(&mut self, name: &str, attributes: &Attributes) -> Result<(), SerError> {
+        let mut xml_start_element = ::xml::writer::XmlEvent::start_element(name);
+        for (attribute_name, attribute_value) in attributes.iter() {
+            xml_start_element = xml_start_element.attr(attribute_name, attribute_value);
+        }
+
+        self.event_writer.write(xml_start_element)?;
         Ok(())
     }
 
@@ -68,12 +84,22 @@ mod tests {
     fn write_element() {
         let str = "test";
         let xml = crate::test_utils::container::contained_xml("test");
-        assert_serialize_str(&xml, &Container(str));
+        assert_serialize_str(&xml, &Container::new(str));
     }
 
     #[test]
     fn write_self_closing_element() {
         let xml = format!("<{}/>", crate::test_utils::container::ELEMENT_NAME);
-        assert_serialize_str(&xml, &Container(()));
+        assert_serialize_str(&xml, &Container::new(()));
+    }
+
+    #[test]
+    fn write_element_with_attributes() {
+        let xml = format!(r#"<{} foo="bar"/>"#, crate::test_utils::container::ELEMENT_NAME);
+
+        let mut attributes = Attributes::default();
+        attributes.add("foo", "bar").unwrap();
+
+        assert_serialize_str(&xml, &Container::new_with_attributes(attributes, ()));
     }
 }

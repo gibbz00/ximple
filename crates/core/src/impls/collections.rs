@@ -59,8 +59,8 @@ mod tests {
 
         const VEC_ELEMENTS: [&str; 4] = ["t", "e", "s", "t"];
 
-        fn mock_vec() -> Vec<Container<String>> {
-            VEC_ELEMENTS.iter().map(|value| Container(value.to_string())).collect()
+        fn mock_vec() -> Vec<Container<'static, String>> {
+            VEC_ELEMENTS.iter().map(|value| Container::new(value.to_string())).collect()
         }
 
         fn mock_vec_xml() -> String {

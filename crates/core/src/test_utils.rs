@@ -14,7 +14,20 @@ pub mod container {
     use crate::*;
 
     #[derive(PartialEq, Debug)]
-    pub struct Container<T>(pub T);
+    pub struct Container<'a, T> {
+        value: T,
+        attributes: Attributes<'a>,
+    }
+
+    impl<'a, T> Container<'a, T> {
+        pub fn new(value: T) -> Self {
+            Self::new_with_attributes(Attributes::default(), value)
+        }
+
+        pub fn new_with_attributes(attributes: Attributes<'a>, value: T) -> Self {
+            Self { value, attributes }
+        }
+    }
 
     pub const ELEMENT_NAME: &str = "a";
 
@@ -22,16 +35,16 @@ pub mod container {
         format!("<{}>{}</{}>", ELEMENT_NAME, str, ELEMENT_NAME)
     }
 
-    impl<T: ToXml> ToXml for Container<T> {
+    impl<T: ToXml> ToXml for Container<'_, T> {
         fn serialize(&self, serializer: &mut Serializer<impl std::io::Write>) -> Result<(), SerError> {
-            serializer.write_element(ELEMENT_NAME, &self.0)
+            serializer.write_element_with_attributes(ELEMENT_NAME, &self.attributes, &self.value)
         }
     }
 
-    impl<T: FromXml> FromXml for Container<T> {
+    impl<T: FromXml> FromXml for Container<'_, T> {
         fn deserialize(deserializer: &mut Deserializer<impl std::io::Read>) -> Result<Self, DeError> {
             let inner = deserializer.read_element(Name::new(ELEMENT_NAME))?;
-            Ok(Self(inner))
+            Ok(Self::new(inner))
         }
     }
 }
@@ -52,7 +65,7 @@ macro_rules! assert_bijective_xml {
         }
         #[test]
         fn deserialization() {
-            let container = $crate::Container($value);
+            let container = $crate::Container::new($value);
             let contained_xml = $crate::test_utils::container::contained_xml($xml_str);
             assert_deserialize_str(&container, &contained_xml);
         }

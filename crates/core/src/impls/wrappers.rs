@@ -68,13 +68,13 @@ mod tests {
     #[test]
     fn option_some_serialization() {
         let xml = format!("<{}/>", crate::test_utils::container::ELEMENT_NAME);
-        assert_serialize_str(&xml, &Some(Container(())));
+        assert_serialize_str(&xml, &Some(Container::new(())));
     }
 
     #[test]
     fn option_some_deserialization() {
         let xml = crate::test_utils::container::contained_xml("");
-        assert_deserialize_str(&Some(Container(())), &xml);
+        assert_deserialize_str(&Some(Container::new(())), &xml);
     }
 
     #[test]
@@ -84,7 +84,7 @@ mod tests {
 
     #[test]
     fn option_none_deserialization() {
-        assert_deserialize_str(&Container(Option::<Container<()>>::None), "<container></container>");
+        assert_deserialize_str(&Container::new(Option::<Container<()>>::None), "<container></container>");
     }
 
     #[test]
