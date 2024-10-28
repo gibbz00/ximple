@@ -2,6 +2,9 @@
 
 use proc_macro::TokenStream;
 
+mod attribute_utils;
+pub(crate) use attribute_utils::{AttributeParseError, AttributeParser, CrateAttribute};
+
 mod derive_from_xml;
 mod derive_to_xml;
 

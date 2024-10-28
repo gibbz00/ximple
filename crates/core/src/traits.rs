@@ -12,6 +12,14 @@ pub trait ToXml {
     fn should_skip(&self) -> bool {
         false
     }
+
+    /// Produce a list of attributes to serialize
+    ///
+    /// Attributes are usually part of the enclosing element and called before
+    /// serializing the parent element start tag.
+    fn attributes(&self) -> Attributes {
+        Default::default()
+    }
 }
 
 pub trait FromXml: Sized {

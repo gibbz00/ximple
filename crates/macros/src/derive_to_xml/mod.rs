@@ -9,6 +9,7 @@ pub fn derive_to_xml_impl(token_stream: TokenStream) -> TokenStream {
     let type_definition = parse_macro_input!(token_stream as DeriveInput);
 
     let ident = type_definition.ident;
+    let container_attributes = type_definition.attrs;
 
     let impl_body = match type_definition.data {
         Data::Struct(data_struct) => structs::derive(data_struct),
