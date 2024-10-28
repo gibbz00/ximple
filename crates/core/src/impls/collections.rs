@@ -1,25 +1,36 @@
+use std::{
+    borrow::Cow,
+    io::{Read, Write},
+};
+
 use crate::*;
 
 impl ToXml for String {
-    fn serialize(&self, serializer: &mut Serializer<impl std::io::Write>) -> Result<(), SerError> {
+    fn serialize(&self, serializer: &mut Serializer<impl Write>) -> Result<(), SerError> {
         serializer.write_str(self)
     }
 }
 
+impl ToXmlAttr for String {
+    fn serialize(&self) -> Option<Cow<'_, str>> {
+        Some(Cow::Borrowed(self))
+    }
+}
+
 impl FromXml for String {
-    fn deserialize(deserializer: &mut Deserializer<impl std::io::Read>) -> Result<Self, DeError> {
+    fn deserialize(deserializer: &mut Deserializer<impl Read>) -> Result<Self, DeError> {
         deserializer.read_string()
     }
 }
 
 impl<T: ToXml> ToXml for Vec<T> {
-    fn serialize(&self, serializer: &mut Serializer<impl std::io::Write>) -> Result<(), SerError> {
+    fn serialize(&self, serializer: &mut Serializer<impl Write>) -> Result<(), SerError> {
         self.iter().try_for_each(|element| element.serialize(serializer))
     }
 }
 
 impl<T: FromXml> FromXml for Vec<T> {
-    fn deserialize(deserializer: &mut Deserializer<impl std::io::Read>) -> Result<Self, DeError> {
+    fn deserialize(deserializer: &mut Deserializer<impl Read>) -> Result<Self, DeError> {
         let mut buffer = Vec::new();
         let start_depth = deserializer.event_stream().depth();
 
@@ -43,7 +54,7 @@ impl<T: FromXml> FromXml for Vec<T> {
 }
 
 impl<T: ToXml> ToXml for [T] {
-    fn serialize(&self, serializer: &mut Serializer<impl std::io::Write>) -> Result<(), SerError> {
+    fn serialize(&self, serializer: &mut Serializer<impl Write>) -> Result<(), SerError> {
         self.iter().try_for_each(|element| element.serialize(serializer))
     }
 }
@@ -79,5 +90,13 @@ mod tests {
     #[test]
     fn slice_serialization() {
         assert_serialize_str("test", &["t", "e", "s", "t"].as_slice());
+    }
+
+    #[test]
+    fn to_attr() {
+        // TEMP: to be replace with bijictive assertion once `FromXmlAttr` is added
+
+        let string = "test".to_string();
+        assert_eq!(Some(Cow::Borrowed(string.as_str())), ToXmlAttr::serialize(&string));
     }
 }

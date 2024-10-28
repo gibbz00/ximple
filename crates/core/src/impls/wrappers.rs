@@ -19,6 +19,12 @@ impl<T: ToXml> ToXml for Option<T> {
     }
 }
 
+impl<T: ToXmlAttr> ToXmlAttr for Option<T> {
+    fn serialize(&self) -> Option<Cow<'_, str>> {
+        self.as_ref().and_then(ToXmlAttr::serialize)
+    }
+}
+
 impl<T: FromXml> FromXml for Option<T> {
     fn deserialize(deserializer: &mut Deserializer<impl Read>) -> Result<Self, DeError> {
         // Deserializer::read_start_element determines if the enclosing tags for
@@ -37,6 +43,12 @@ impl<T: ToXml> ToXml for Box<T> {
     }
 }
 
+impl<T: ToXmlAttr> ToXmlAttr for Box<T> {
+    fn serialize(&self) -> Option<Cow<'_, str>> {
+        self.as_ref().serialize()
+    }
+}
+
 impl<T: FromXml> FromXml for Box<T> {
     fn deserialize(deserializer: &mut Deserializer<impl Read>) -> Result<Self, DeError> {
         T::deserialize(deserializer).map(Box::new)
@@ -46,6 +58,12 @@ impl<T: FromXml> FromXml for Box<T> {
 impl<T: ToXml + ToOwned + ?Sized> ToXml for Cow<'_, T> {
     fn serialize(&self, serializer: &mut Serializer<impl Write>) -> Result<(), SerError> {
         self.as_ref().serialize(serializer)
+    }
+}
+
+impl<T: ToXmlAttr + ToOwned + ?Sized> ToXmlAttr for Cow<'_, T> {
+    fn serialize(&self) -> Option<Cow<'_, str>> {
+        self.as_ref().serialize()
     }
 }
 
@@ -90,5 +108,25 @@ mod tests {
     #[test]
     fn cow_serialization() {
         assert_serialize_str("test", &Cow::Borrowed("test"));
+    }
+
+    #[test]
+    fn to_attr() {
+        // TEMP: to be replace with bijictive assertion once `FromXmlAttr` is added
+
+        let some_str = Some("test");
+        assert_eq!(some_str.map(Cow::Borrowed), ToXmlAttr::serialize(&some_str));
+
+        let none_str = Option::<&str>::None;
+        assert_eq!(None, ToXmlAttr::serialize(&none_str));
+
+        let boxed_str = Box::new("test");
+        assert_eq!(Some(Cow::Borrowed(*boxed_str)), ToXmlAttr::serialize(&boxed_str));
+
+        let cow_borrowed = Cow::Borrowed("test");
+        assert_eq!(Some(Cow::Borrowed(&*cow_borrowed)), ToXmlAttr::serialize(&cow_borrowed));
+
+        let cow_owned: Cow<'static, bool> = Cow::Owned(true);
+        assert_eq!(Some(Cow::Borrowed("true")), ToXmlAttr::serialize(&cow_owned));
     }
 }

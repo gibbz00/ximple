@@ -19,7 +19,7 @@ pub mod de;
 pub(crate) use de::{Error as DeError, *};
 
 mod traits;
-pub use traits::{FromXml, ToXml};
+pub use traits::{FromXml, ToXml, ToXmlAttr};
 
 mod impls;
 

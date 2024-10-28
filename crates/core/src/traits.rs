@@ -1,4 +1,4 @@
-use std::io::Write;
+use std::{borrow::Cow, io::Write};
 
 use crate::*;
 
@@ -23,4 +23,9 @@ pub trait FromXml: Sized {
     fn fallback() -> Option<Self> {
         None
     }
+}
+
+/// To XML attribute value trait
+pub trait ToXmlAttr {
+    fn serialize(&self) -> Option<Cow<'_, str>>;
 }
