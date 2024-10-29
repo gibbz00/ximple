@@ -11,10 +11,15 @@ pub fn derive_to_xml_impl(token_stream: TokenStream) -> TokenStream {
     let ident = type_definition.ident;
     let container_attributes = type_definition.attrs;
 
-    let impl_body = match type_definition.data {
-        Data::Struct(data_struct) => structs::derive(data_struct),
+    let impl_body_result = match type_definition.data {
+        Data::Struct(data_struct) => structs::derive(container_attributes, data_struct),
         Data::Enum(data_enum) => enums::derive(&ident, data_enum),
-        Data::Union(data_union) => syn::Error::new(data_union.union_token.span, "unions are not supported").to_compile_error(),
+        Data::Union(data_union) => Err(syn::Error::new(data_union.union_token.span, "unions are not supported")),
+    };
+
+    let impl_body = match impl_body_result {
+        Ok(impl_body) => impl_body,
+        Err(err) => return err.into_compile_error().into(),
     };
 
     let to_xml_bounds: TypeParamBound = syn::parse_str("::ximple::ToXml").expect("valid type parameter bound");

@@ -2,11 +2,9 @@ use std::collections::HashMap;
 
 use syn::{meta::ParseNestedMeta, spanned::Spanned, Attribute};
 
-use crate::*;
+pub type AttributeBuffer<A> = HashMap<&'static str, A>;
 
-type AttributeBuffer<A> = HashMap<&'static str, A>;
-
-pub trait CrateAttribute: Sized {
+pub trait XimpleAttribute: Sized {
     /// Set of compatible attributes, usually represented with an enum
     ///
     /// Used in [`Self::into_compatible_set`]
@@ -40,7 +38,7 @@ impl AttributeParser {
     ///
     /// Sanitizes and reports errors on non-metalist, duplicate,
     /// incompatible, and unknown attributes.
-    pub fn parse<A: CrateAttribute>(
+    pub fn parse<A: XimpleAttribute>(
         attributes: Vec<Attribute>,
         compatibility_context: A::CompatibilityContext,
     ) -> syn::Result<A::AttributeSet> {
