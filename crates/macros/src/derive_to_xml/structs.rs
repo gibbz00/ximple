@@ -40,7 +40,10 @@ mod unnamed {
     use crate::*;
 
     pub fn unnamed(container_attributes: Vec<Attribute>, fields: FieldsUnnamed) -> syn::Result<TokenStream2> {
-        let _container_attribute_set = AttributeParser::parse::<TupleContainerAttribute>(container_attributes, ())?;
+        let _container_attribute_set = AttributeParser::parse_container_attributes::<
+            ToXmlStructUnnamedContainerAttribute,
+            FromXmlStructUnnamedContainerAttribute,
+        >(container_attributes)?;
 
         let elements = fields.unnamed.into_iter().enumerate().map(|(index, _)| {
             let index = syn::Index::from(index);
@@ -55,11 +58,13 @@ mod unnamed {
         })
     }
 
-    pub(crate) use attributes::TupleContainerAttribute;
+    pub(crate) use attributes::ToXmlStructUnnamedContainerAttribute;
     mod attributes {
+        use syn::Ident;
+
         use crate::*;
 
-        pub enum TupleContainerAttribute {
+        pub enum ToXmlStructUnnamedContainerAttribute {
             // TODO: serialize_with
         }
 
@@ -67,12 +72,18 @@ mod unnamed {
             None,
         }
 
-        impl XimpleAttribute for TupleContainerAttribute {
+        impl XimpleAttribute for ToXmlStructUnnamedContainerAttribute {
             type AttributeSet = TupleContainerAttributeSet;
-            type CompatibilityContext = ();
+            type CompatibilityContext = ContainerCompatibilityContext;
+
+            const DERIVE_NAME: DeriveName = DeriveName::ToXml;
 
             fn name(&self) -> &'static str {
                 unreachable!("no tuple strucs attributes have been defined")
+            }
+
+            fn is_name(_: &Ident) -> bool {
+                false
             }
 
             fn parse_attribute(nested_meta: syn::meta::ParseNestedMeta<'_>) -> Result<Self, AttributeParseError> {

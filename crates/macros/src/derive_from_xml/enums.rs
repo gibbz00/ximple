@@ -2,7 +2,7 @@ use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
 use syn::{DataEnum, FieldsNamed, FieldsUnnamed, Ident};
 
-pub fn derive(data_enum: DataEnum) -> TokenStream2 {
+pub fn derive_from_enum(data_enum: DataEnum) -> TokenStream2 {
     // TODO: note that this this must take future 'skip', 'rename' and 'flatten'
     // attributes into account too.
     let not_found_error = {

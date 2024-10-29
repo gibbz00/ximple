@@ -3,9 +3,14 @@
 use proc_macro::TokenStream;
 
 mod attribute_utils;
-pub(crate) use attribute_utils::{AttributeBuffer, AttributeParseError, AttributeParser, XimpleAttribute};
+pub(crate) use attribute_utils::{
+    AttributeBuffer, AttributeParseError, AttributeParser, ContainerCompatibilityContext, DeriveName, FieldCompatibilityContext,
+    XimpleAttribute,
+};
 
 mod derive_from_xml;
+pub(crate) use derive_from_xml::*;
+
 mod derive_to_xml;
 
 /// Derives `ToXml`
